@@ -1,134 +1,259 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { Bot, Menu, X, CalendarDays } from "lucide-react";
+import GlowButton from "@/components/ui/GlowButton";
 
-const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/solutions", label: "Solutions" },
-  { href: "/agents", label: "AI Agents" },
-  { href: "/technology", label: "Technology" },
-  { href: "/contact", label: "Contact" },
-];
+// ─── Navigation links ─────────────────────────────────────────────────────────
+
+const NAV_LINKS = [
+  { label: "Home",       href: "/" },
+  { label: "Solutions",  href: "/solutions" },
+  { label: "AI Agents",  href: "/agents" },
+  { label: "Technology", href: "/technology" },
+  { label: "Contact",    href: "/contact" },
+] as const;
+
+// ─── Navbar ───────────────────────────────────────────────────────────────────
 
 export default function Navbar() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const pathname                   = usePathname();
+  const [scrolled, setScrolled]   = useState(false);
+  const [menuOpen, setMenuOpen]    = useState(false);
 
+  // ── Scroll detection ──────────────────────────────────────────────────────
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    const onScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // ── Close mobile menu on route change ────────────────────────────────────
+  useEffect(() => { setMenuOpen(false); }, [pathname]);
+
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname.startsWith(href);
+
+  // ── Scroll-aware navbar styles ────────────────────────────────────────────
+  const navBg = scrolled
+    ? "bg-black/60 shadow-[0_8px_32px_rgba(0,0,0,0.6)]"
+    : "bg-black/40";
+
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "bg-[#0A0F1E]/90 backdrop-blur-xl border-b border-white/5 shadow-lg shadow-black/20"
-          : "bg-transparent"
-      }`}
-    >
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 lg:h-20">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative w-8 h-8">
-              <Image
-                src="/logo.svg"
-                alt="AI Tool Creator Logo"
-                fill
-                className="object-contain"
-                priority
-              />
-            </div>
-            <span
-              className="font-display font-bold text-lg tracking-tight gradient-text"
-              style={{ fontFamily: "var(--font-space-grotesk, sans-serif)" }}
-            >
-              AI Tool Creator
-            </span>
-          </Link>
+    <>
+      {/* ── Entrance animation ───────────────────────────────────────────── */}
+      <motion.header
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="fixed top-0 inset-x-0 z-50 px-4 pt-4"
+        role="banner"
+      >
+        <nav
+          className={[
+            // Float + shape
+            "relative mx-auto max-w-7xl rounded-2xl",
+            // Glass base
+            "backdrop-blur-xl border border-white/10",
+            // Scroll-aware bg + shadow
+            navBg,
+            "transition-all duration-300 ease-out",
+          ].join(" ")}
+          aria-label="Main navigation"
+        >
 
-          {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="relative px-4 py-2 text-sm font-medium text-[#94A3B8] hover:text-white transition-colors duration-200 group"
-              >
-                <span className="relative z-10">{link.label}</span>
-                <span className="absolute inset-0 rounded-lg bg-white/0 group-hover:bg-white/5 transition-colors duration-200" />
-              </Link>
-            ))}
-          </div>
+          {/* Top gradient accent line */}
+          <div
+            className="absolute inset-x-0 top-0 h-px rounded-t-2xl pointer-events-none"
+            style={{
+              background:
+                "linear-gradient(to right, transparent, rgba(99,102,241,0.5), transparent)",
+            }}
+            aria-hidden="true"
+          />
 
-          {/* CTA Button */}
-          <div className="hidden md:flex items-center gap-4">
+          {/* ── Desktop / base bar ───────────────────────────────────────── */}
+          <div className="flex items-center justify-between h-16 px-4 sm:px-6">
+
+            {/* Logo */}
             <Link
-              href="/contact"
-              className="relative inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white overflow-hidden group"
-              style={{
-                background: "linear-gradient(135deg, #6366F1, #8B5CF6)",
-              }}
+              href="/"
+              className="flex items-center gap-2.5 flex-shrink-0 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-lg"
+              aria-label="AI Tool Creator — home"
             >
-              <span className="relative z-10">Get Started</span>
-              <span className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors duration-200" />
+              <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-600/20 border border-indigo-500/30 group-hover:bg-indigo-600/30 transition-colors duration-300">
+                <Bot size={18} className="text-indigo-400" aria-hidden="true" />
+              </span>
+              <span className="font-bold text-base tracking-tight" style={{ fontFamily: "var(--font-space-grotesk, sans-serif)" }}>
+                <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
+                  AI
+                </span>{" "}
+                <span className="text-slate-100">Tool Creator</span>
+              </span>
             </Link>
+
+            {/* Desktop nav links */}
+            <ul className="hidden md:flex items-center gap-1" role="list">
+              {NAV_LINKS.map(({ label, href }) => {
+                const active = isActive(href);
+                return (
+                  <li key={href}>
+                    <Link
+                      href={href}
+                      className={[
+                        "relative px-3 py-2 text-sm font-medium rounded-lg",
+                        "transition-colors duration-200 ease-out",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
+                        active
+                          ? "text-indigo-400"
+                          : "text-slate-400 hover:text-white hover:bg-white/5",
+                      ].join(" ")}
+                      aria-current={active ? "page" : undefined}
+                    >
+                      {label}
+
+                      {/* Animated active-page indicator dot */}
+                      {active && (
+                        <motion.span
+                          layoutId="nav-active-dot"
+                          className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-indigo-400"
+                          transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                          aria-hidden="true"
+                        />
+                      )}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+
+            {/* Right: CTA + hamburger */}
+            <div className="flex items-center gap-3">
+              <GlowButton
+                href="/contact"
+                variant="primary"
+                size="sm"
+                className="hidden sm:inline-flex"
+              >
+                <CalendarDays size={14} aria-hidden="true" />
+                Book Consultation
+              </GlowButton>
+
+              {/* Hamburger — mobile only */}
+              <motion.button
+                type="button"
+                onClick={() => setMenuOpen((o) => !o)}
+                whileTap={{ scale: 0.92 }}
+                className={[
+                  "md:hidden flex items-center justify-center w-9 h-9 rounded-lg",
+                  "border border-white/10 bg-white/5",
+                  "text-slate-300 hover:text-white hover:bg-white/10",
+                  "cursor-pointer transition-colors duration-200",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
+                ].join(" ")}
+                aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+                aria-expanded={menuOpen}
+                aria-controls="mobile-menu"
+              >
+                <AnimatePresence mode="wait" initial={false}>
+                  {menuOpen ? (
+                    <motion.span
+                      key="close"
+                      initial={{ rotate: -90, opacity: 0 }}
+                      animate={{ rotate: 0,   opacity: 1 }}
+                      exit={{   rotate:  90,  opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <X size={18} aria-hidden="true" />
+                    </motion.span>
+                  ) : (
+                    <motion.span
+                      key="open"
+                      initial={{ rotate:  90, opacity: 0 }}
+                      animate={{ rotate:  0,  opacity: 1 }}
+                      exit={{   rotate: -90,  opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <Menu size={18} aria-hidden="true" />
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </motion.button>
+            </div>
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            id="mobile-menu-button"
-            onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-2 rounded-lg text-[#94A3B8] hover:text-white hover:bg-white/5 transition-colors"
-            aria-label="Toggle menu"
-          >
-            {isOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
-        </div>
-      </nav>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            id="mobile-menu"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
-            className="md:hidden bg-[#0A0F1E]/95 backdrop-blur-xl border-b border-white/5"
-          >
-            <div className="px-4 py-4 space-y-1">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setIsOpen(false)}
-                  className="block px-4 py-3 rounded-lg text-[#94A3B8] hover:text-white hover:bg-white/5 transition-colors font-medium"
-                >
-                  {link.label}
-                </Link>
-              ))}
-              <Link
-                href="/contact"
-                onClick={() => setIsOpen(false)}
-                className="block mt-3 px-4 py-3 rounded-xl text-center text-white font-semibold"
-                style={{
-                  background: "linear-gradient(135deg, #6366F1, #8B5CF6)",
-                }}
+          {/* ── Mobile dropdown ──────────────────────────────────────────── */}
+          <AnimatePresence>
+            {menuOpen && (
+              <motion.div
+                id="mobile-menu"
+                key="mobile-menu"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{   height: 0,    opacity: 0 }}
+                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                className="md:hidden overflow-hidden"
+                role="navigation"
+                aria-label="Mobile navigation"
               >
-                Get Started
-              </Link>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </header>
+                <div className="px-4 pb-4 pt-2 border-t border-white/5 flex flex-col gap-1">
+                  {NAV_LINKS.map(({ label, href }, i) => {
+                    const active = isActive(href);
+                    return (
+                      <motion.div
+                        key={href}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.05, duration: 0.25, ease: "easeOut" }}
+                      >
+                        <Link
+                          href={href}
+                          className={[
+                            "flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium",
+                            "transition-colors duration-200",
+                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
+                            active
+                              ? "text-indigo-400 bg-indigo-500/10"
+                              : "text-slate-400 hover:text-white hover:bg-white/5",
+                          ].join(" ")}
+                          aria-current={active ? "page" : undefined}
+                        >
+                          {active && (
+                            <span
+                              className="w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"
+                              aria-hidden="true"
+                            />
+                          )}
+                          {label}
+                        </Link>
+                      </motion.div>
+                    );
+                  })}
+
+                  {/* Mobile CTA */}
+                  <div className="pt-2">
+                    <GlowButton
+                      href="/contact"
+                      variant="primary"
+                      size="md"
+                      className="w-full justify-center"
+                    >
+                      <CalendarDays size={16} aria-hidden="true" />
+                      Book Consultation
+                    </GlowButton>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </nav>
+      </motion.header>
+
+      {/* Spacer — clears the floating bar so page content is not hidden */}
+      <div className="h-24" aria-hidden="true" />
+    </>
   );
 }
